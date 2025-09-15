@@ -69,7 +69,7 @@ GitHub Pages serves docs/index.html → fetches docs/status.json → flips UI
 docs/
   CNAME                # "status.immersive-app.com"
   index.html           # Tailwind UI that reads status.json
-  status.json          # Filled by the Action (seed file for first load)
+  status.json          # Updated by GitHub Actions
 .github/
   workflows/
     uptime.yml         # Scheduler + SES sender + status.json commit
@@ -165,7 +165,7 @@ Repo → **Settings → Secrets and variables → Actions** → **New repository
 * `FROM_EMAIL` → verified SES sender (e.g., `noreply@immersive-app.com`)
 * `TO_EMAIL` → recipient (must be verified in Sandbox)
 
-> Region is set inside the workflow (`AWS_REGION: eu-west-1`). Change if your SES region differs.
+> Region is set inside the workflow (`AWS_REGION: eu-central-1`). 
 
 ### 6) First run & verification
 
@@ -214,4 +214,4 @@ Repo → **Settings → Secrets and variables → Actions** → **New repository
 
 ## License
 
-Choose your license model (e.g., proprietary or source-available). See `/LICENSE` for details.
+[MIT](LICENSE.md)
