@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Immersive Status</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gray-50 text-gray-900">
+  <div class="max-w-xl mx-auto px-6 py-12">
+    <header class="mb-8">
+      <h1 class="text-3xl font-semibold">Immersive Status</h1>
+      <p class="text-sm text-gray-500">Automatic check every 10 minutes</p>
+    </header>
+
+    <div id="card" class="rounded-2xl border p-6 bg-white shadow-sm">
+      <div id="badge" class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium"></div>
+
+      <h2 id="headline" class="mt-4 text-2xl font-semibold"></h2>
+      <p id="sub" class="mt-2 text-gray-600"></p>
+
+      <dl class="mt-6 grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <dt class="text-gray-500">Last checked</dt>
+          <dd id="checked" class="font-medium"></dd>
+        </div>
+        <div>
+          <dt class="text-gray-500">HTTP status</dt>
+          <dd id="status" class="font-medium"></dd>
+        </div>
+        <div>
+          <dt class="text-gray-500">Latency</dt>
+          <dd id="latency" class="font-medium"></dd>
+        </div>
+        <div>
+          <dt class="text-gray-500">URL</dt>
+          <dd id="url" class="font-medium break-all"></dd>
+        </div>
+      </dl>
+
+      <p class="mt-6 text-xs text-gray-500">This page updates from <code>status.json</code> committed by a GitHub Action.</p>
+    </div>
+  </div>
+
+  <script>
+    async function loadStatus() {
+      try {
+        const r = await fetch('./status.json', { cache: 'no-store' });
+        if (!r.ok) throw new Error('status.json not found');
+        const s = await r.json();
+
+        const ok = Boolean(s.ok);
+        const badge = document.getElementById('badge');
+        const headline = document.getElementById('headline');
+        const sub = document.getElementById('sub');
+
+        badge.textContent = ok ? 'UP' : 'DOWN';
+        badge.className =
+          'inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium ' +
+          (ok ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+              : 'bg-red-100 text-red-700 border border-red-200');
+
+        headline.textContent = ok ? 'Immersive is up' : 'Immersive is down';
+        sub.textContent = ok ? 'All systems operational.'
+                             : 'We’re looking into it. Alerts have been sent.';
+
+        document.getElementById('checked').textContent = s.checked_at || '—';
+        document.getElementById('status').textContent = s.status ?? '—';
+        document.getElementById('latency').textContent = (s.latency_ms != null) ? (s.latency_ms + ' ms') : '—';
+        document.getElementById('url').textContent = s.url || '—';
+      } catch (e) {
+        document.getElementById('badge').textContent = 'UNKNOWN';
+        document.getElementById('headline').textContent = 'Status unavailable';
+        document.getElementById('sub').textContent = 'Unable to load status.json.';
+      }
+    }
+    loadStatus();
+  </script>
+</body>
+</html>

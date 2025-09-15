@@ -1,0 +1,48 @@
+name: Uptime Check
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # every 10 minutes
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write     # OIDC to AWS
+      contents: write     # to commit docs/status.json
+    env:
+      TARGET_URL: https://immersive-app.com/up
+      TIMEOUT_SECONDS: "10"
+      AWS_REGION: eu-west-1
+      ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}  # set in repo secrets
+      FROM_EMAIL: ${{ secrets.FROM_EMAIL }}  # SES-verified sender
+      TO_EMAIL:   ${{ secrets.TO_EMAIL }}    # recipient (verify if SES sandbox)
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install requests boto3
+
+      - name: Run check and write docs/status.json
+        run: python .github/scripts/check_uptime.py
+
+      - name: Commit status.json (if changed)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/status.json
+          git commit -m "Update status.json [skip ci]" || echo "No changes to commit"
+          git push
